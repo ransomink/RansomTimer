@@ -1,2 +1,2 @@
-# RansomTimer
-Trigger an event after a specific interval or delay of time.
+# Ransom Timer
+Custom delay (timer) for actions and events.
