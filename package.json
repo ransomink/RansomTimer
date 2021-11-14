@@ -1,0 +1,19 @@
+{
+  "name": "com.ransomink.timer",
+  "version": "1.0.0",
+  "displayName": "Ransom Timer",
+  "description": "Custom delay (timer) for actions and events.",
+  "unity": "2020.3",
+  "unityRelease": "0f1",
+  "keywords": [
+    "coroutine",
+    "delay",
+    "timer",
+    "unity",
+    "wait"
+  ],
+  "author": {
+    "name": "Joshua Smith",
+    "url": "https://github.com/ransomink/Timer"
+  }
+}
