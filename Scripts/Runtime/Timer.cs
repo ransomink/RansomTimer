@@ -24,12 +24,14 @@ namespace Ransom
         [SerializeField] private float _duration;
         [SerializeField] private float _startTime;
 
-        private MonoBehaviour _behaviour;
-        private float _suspendedTime;
         private bool  _isDirty;
+        private float _suspendedTime;
+        private MonoBehaviour _behaviour;
         #endregion Fields
         
         #region Properties
+        public static List<(Timer Timer, Action Action)> Timers { get => _timers; private set => _timers = value; }
+
         /// <summary>
         /// The object reference this timer is attached to.
         /// </summary>
@@ -43,12 +45,12 @@ namespace Ransom
         /// <summary>
         /// The expiration of the timer in seconds.
         /// </summary>
-        public float EndTime      { get => _endTime;      private set => _endTime      = value; }
+        public float EndTime { get => _endTime; private set => _endTime = value; }
 
         /// <summary>
         /// If the timer can repeat after execution.
         /// </summary>
-        public bool  HasLoop      { get => _canLoop;      private set => _canLoop      = value; }
+        public bool  HasLoop { get => _canLoop; private set => _canLoop = value; }
 
         /// <summary>
         /// Does the timer have a reference to an object?
@@ -63,18 +65,17 @@ namespace Ransom
         /// <summary>
         /// Is the timer complete (current time exceeds end time)?
         /// </summary>
-        public bool  IsDone       { get { if (IsCancelled || IsSuspended) return false; if (!_isDirty) return Time >= EndTime; else return _isDirty; } private set { _isDirty = value; } }
+        public bool  IsDone { get { if (IsCancelled || IsSuspended) return false; if (!_isDirty) return this.Time >= EndTime; else return _isDirty; } private set { _isDirty = value; } }
 
         /// <summary>
         /// Is the timer on hold (stopped execution)?
         /// </summary>
-        public bool  IsSuspended  { get => _isSuspended;  private set => _isSuspended  = value; }
+        public bool  IsSuspended { get => _isSuspended; private set => _isSuspended = value; }
 
         /// <summary>
         /// The normalized time in seconds since the start of the timer (Read Only). Helpful for Lerp methods.
         /// </summary>
-        public float PercentageDone { get { if (!IsCancelled && !IsSuspended) return Mathf.InverseLerp(_startTime, _endTime, Time);
-            return Mathf.InverseLerp(_startTime, _endTime, _endTime - _suspendedTime); } }
+        public float PercentageDone { get { if (!IsCancelled && !IsSuspended) return Mathf.InverseLerp(_startTime, _endTime, this.Time); return Mathf.InverseLerp(_startTime, _endTime, _endTime - _suspendedTime); } }
 
         /// <summary>
         /// The #PercentageDone with a SmoothStep applied (Read Only).
@@ -89,19 +90,17 @@ namespace Ransom
         /// <summary>
         /// The time in seconds since the start of the application, in scaled or timeScale-independent time, dependending on the useUnscaledTime mode (Read Only).
         /// </summary>
-        public float Time => _useUnscaledTime ? UnityEngine.Time.unscaledTime : UnityEngine.Time.time;
+        public float Time => _useUnscaledTime ? Ransom.Time.Instance.UnscaledTime : Ransom.Time.Instance.ScaledTime;
 
         /// <summary>
         /// The time in seconds left until completion of the timer.
         /// </summary>
-        public float TimeRemaining { get { if (IsCancelled || IsSuspended) return _suspendedTime; return EndTime - Time; } }
+        public float TimeRemaining { get { if (IsCancelled || IsSuspended) return _suspendedTime; return EndTime - this.Time; } }
 
         /// <summary>
         /// Determines whether the application #Time in seconds is considered game time (scaled) or  real-time (timeScale-independent: not affected by pause or slow-motion).
         /// </summary>
-        public bool  UnscaledTime { get => _useUnscaledTime; private set => _useUnscaledTime = value; }
-
-        public static List<(Timer Timer, Action Action)> Timers { get => _timers; private set => _timers = value; }
+        public bool  UnscaledTime  { get => _useUnscaledTime; private set => _useUnscaledTime = value; }
         #endregion Properties
 
         #region Constructors
@@ -142,7 +141,7 @@ namespace Ransom
         public static void OnUpdate()
         {
             if (_timers.Count == 0) return;
-            
+
             for (var i = 0; i < _timers.Count; i++)
             {
                 var (Timer, OnComplete) = _timers[i];
@@ -158,7 +157,7 @@ namespace Ransom
                     continue;
                 }
 
-                if  (Timer.IsSuspended) continue;
+                if  ( Timer.IsSuspended) continue;
                 if  (!Timer.IsDone)
                 {
                     var timer = GetNextTimer(i);
@@ -260,7 +259,7 @@ namespace Ransom
         public void NewDuration(float newDuration)
         {
             _isDirty  = false;
-            StartTime = Time;
+            StartTime = this.Time;
             EndTime   = _startTime + newDuration;
         }
 
@@ -287,7 +286,7 @@ namespace Ransom
         /// </summary>
         public void Resume()
         {
-            EndTime     = Time + _suspendedTime;
+            EndTime     = this.Time + _suspendedTime;
             StartTime   = EndTime - (Duration - _suspendedTime);
             IsSuspended = false;
         }
@@ -305,24 +304,6 @@ namespace Ransom
         /// Is the attached object reference destroyed?
         /// </summary>
         private bool IsDestroyed() => !ReferenceEquals(_behaviour, null) && _behaviour == null;
-
-        // public void GlobalUpdate()
-        // {
-        //     var i   = 0;
-        //     var now = Time.time;
-
-        //     while (i < delays.count)
-        //     {
-        //         var cur = struct[i];
-        //         if (cur.start + cur.delay < now)
-        //         {   
-        //             cur.action?.Invoke();
-        //             delays.RemoveAt(i);
-        //             continue;
-        //         }  
-        //         i++;
-        //     }
-        // }
         #endregion Methods    
     }
 }

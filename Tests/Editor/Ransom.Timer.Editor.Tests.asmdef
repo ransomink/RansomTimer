@@ -2,8 +2,8 @@
     "name": "Ransom.Timer.Editor.Tests",
     "rootNamespace": "Ransom.Editor.Tests",
     "references": [
-        "Ransom.Timer.Editor",
         "Ransom.Timer",
+        "Ransom.Timer.Editor",
         "UnityEditor.TestRunner",
         "UnityEngine.TestRunner"
     ],
