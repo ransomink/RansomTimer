@@ -14,10 +14,10 @@ namespace Ransom
         public Action OnCancelled;
         public Action OnSuspended;
         public Action OnResumed;
-        public Action OnUpdated;
+        public Action<float> OnUpdated;
         #endregion Events
 
-        public TimerActions(Action onComplete = default, Action onCancelled = default, Action onSuspended = default, Action onResumed = default, Action onUpdated = default)
+        public TimerActions(Action onComplete = default, Action onCancelled = default, Action onSuspended = default, Action onResumed = default, Action<float> onUpdated = default)
         {
             OnComplete  = onComplete;
             OnCancelled = onCancelled;
@@ -256,7 +256,7 @@ namespace Ransom
                     var timer = GetNextTimer(i);
                     if (timer is null) continue;
                     if (timer.IsDone && Mathf.Abs(timer.EndTime - Timer.EndTime) <= _threshold) Timer.ForceCompletion();
-                    else Timer.Actions.OnUpdated?.Invoke(); continue;
+                    else Timer.Actions.OnUpdated?.Invoke(Timer.PercentageDone); continue;
                 }
 
                 // OnComplete?.Invoke();
