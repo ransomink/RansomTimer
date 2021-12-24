@@ -1,6 +1,6 @@
 {
     "name": "com.ransomink.timer",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "displayName": "Ransom Timer",
     "description": "Custom delay (timer) for actions and events.",
     "unity": "2020.3",
