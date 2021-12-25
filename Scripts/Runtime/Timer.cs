@@ -254,15 +254,34 @@ namespace Ransom
                 if  (!Timer.IsDone)
                 {
                     var timer = GetNextTimer(i);
-                    if (timer is null) continue;
+                    if (timer is null)
+                    {
+                        Timer.Actions.OnUpdated?.Invoke(Timer.PercentageDone);
+                        continue;
+                    }
+                    
                     if (timer.IsDone && Mathf.Abs(timer.EndTime - Timer.EndTime) <= _threshold) Timer.ForceCompletion();
-                    else Timer.Actions.OnUpdated?.Invoke(Timer.PercentageDone); continue;
+                    else
+                    {
+                        Timer.Actions.OnUpdated?.Invoke(Timer.PercentageDone);
+                        continue;
+                    }
                 }
 
                 // OnComplete?.Invoke();
                 Timer.Actions.OnComplete?.Invoke();
                 if (!Timer.HasLoop) Timer = Remove(ref i);
                 else Timer.LoopDuration(Timer.Duration);
+            }
+
+            // <summary>
+            // Returns the next timer, if one is found.
+            // </summary>
+            // <param name="index">The index of the current (active) timer.</param>
+            Timer GetNextTimer(int index)
+            {
+                index++;
+                return (index < _timers.Count) ? _timers[index].Timer : null;
             }
 
             // <summary>
@@ -274,16 +293,6 @@ namespace Ransom
                 var timer = _timers[index].Timer;
                 _timers.RemoveAt(index--);
                 return timer = null;
-            }
-
-            // <summary>
-            // Returns the next timer, if one is found.
-            // </summary>
-            // <param name="index">The index of the current (active) timer.</param>
-            Timer GetNextTimer(int index)
-            {
-                index++;
-                return (index < _timers.Count) ? _timers[index].Timer : null;
             }
         }
         #endregion Unity Callbacks
