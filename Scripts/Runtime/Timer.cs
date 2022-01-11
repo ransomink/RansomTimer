@@ -7,7 +7,7 @@ namespace Ransom
     /// <summary>
     /// A set of callbacks invoked during specific events on the timer. 
     /// </summary>
-    public struct TimerActions
+    public class TimerActions
     {
         #region Events
         public Action OnComplete;
@@ -17,7 +17,20 @@ namespace Ransom
         public Action<float> OnUpdated;
         #endregion Events
 
+        #region Constructors
         public TimerActions(Action onComplete = default, Action onCancelled = default, Action onSuspended = default, Action onResumed = default, Action<float> onUpdated = default)
+        {
+            Set(onComplete, onCancelled, onSuspended, onResumed, onUpdated);
+        }
+
+        public TimerActions(TimerActions actions)
+        {
+            Set(actions);
+        }
+        #endregion Constructors
+
+        #region Methods
+        public void Set(Action onComplete = default, Action onCancelled = default, Action onSuspended = default, Action onResumed = default, Action<float> onUpdated = default)
         {
             OnComplete  = onComplete;
             OnCancelled = onCancelled;
@@ -25,6 +38,16 @@ namespace Ransom
             OnResumed   = onResumed;
             OnUpdated   = onUpdated;
         }
+
+        public void Set(TimerActions actions)
+        {
+            OnComplete  = actions.OnComplete;
+            OnCancelled = actions.OnCancelled;
+            OnSuspended = actions.OnSuspended;
+            OnResumed   = actions.OnResumed;
+            OnUpdated   = actions.OnUpdated;
+        }
+        #endregion Methods
     }
 
     /// <summary>
@@ -34,7 +57,7 @@ namespace Ransom
     public class Timer
     {
         #region Fields
-        private static List<(Timer Timer, Action Action)> _timers = new List<(Timer, Action)>();
+        private static List<Timer> _timers = new List<Timer>(32);
         private const float _threshold = .01f;
         [SerializeField] private bool  _canLoop;
         [SerializeField] private bool  _isCancelled;
@@ -54,7 +77,7 @@ namespace Ransom
         #endregion Fields
         
         #region Properties
-        public static List<(Timer Timer, Action Action)> Timers { get => _timers; private set => _timers = value; }
+        public static IReadOnlyList<Timer> Timers => _timers.AsReadOnly();
 
         /// <summary>
         /// A set of callbacks for the timer.
@@ -148,9 +171,7 @@ namespace Ransom
         /// <param name="isUnscaled">Is the timer affected by scale (game time) or timeScale-independent (real-time: not affected by pause or slow motion)?</param>
         public Timer(float time, bool hasLoop = false, bool isUnscaled = false)
         {
-            _useUnscaledTime = isUnscaled;
-            _canLoop = hasLoop;
-            NewDuration(time);
+            Default(time, false, hasLoop, isUnscaled);
         }
 
         /// <summary>
@@ -162,11 +183,9 @@ namespace Ransom
         /// <param name="isUnscaled">Is the timer affected by scale (game time) or timeScale-independent (real-time: not affected by pause or slow motion)?</param>
         public Timer(float time, TimerActions timerActions, bool hasLoop = false, bool isUnscaled = false)
         {
-            _timerActions  = timerActions;
-            _canLoop = hasLoop;
-            _useUnscaledTime = isUnscaled;
-            NewDuration(time);
-            _timers.Add((this, Actions.OnComplete));
+            // _timerActions = timerActions;
+            // Default(time, true, hasLoop, isUnscaled);
+            Set(time, timerActions, hasLoop, isUnscaled);
         }
 
         /// <summary>
@@ -178,11 +197,9 @@ namespace Ransom
         /// <param name="isUnscaled">Is the timer affected by scale (game time) or timeScale-independent (real-time: not affected by pause or slow motion)?</param>
         public Timer(float time, Action action, bool hasLoop = false, bool isUnscaled = false)
         {
-            _timerActions  = new TimerActions(action);
-            _canLoop = hasLoop;
-            _useUnscaledTime = isUnscaled;
-            NewDuration(time);
-            _timers.Add((this, Actions.OnComplete));
+            // _timerActions.Set(action);
+            // Default(time, true, hasLoop, isUnscaled);
+            Set(time, action, hasLoop, isUnscaled);
         }
 
         /// <summary>
@@ -195,13 +212,10 @@ namespace Ransom
         /// <param name="isUnscaled">Is the timer affected by scale (game time) or timeScale-independent (real-time: not affected by pause or slow motion)?</param>
         public Timer(MonoBehaviour behaviour, float time, TimerActions timerActions, bool hasLoop = false, bool isUnscaled = false)
         {
-            _hasReference = true;
-            _behaviour    = behaviour;
-            _timerActions = timerActions;
-            _canLoop = hasLoop;
-            _useUnscaledTime = isUnscaled;
-            NewDuration(time);
-            _timers.Add((this, Actions.OnComplete));
+            // SetBehaviour(behaviour);
+            // _timerActions = timerActions;
+            // Default(time, true, hasLoop, isUnscaled);
+            Set(behaviour, time, timerActions, hasLoop, isUnscaled);
         }
 
         /// <summary>
@@ -214,13 +228,11 @@ namespace Ransom
         /// <param name="isUnscaled">Is the timer affected by scale (game time) or timeScale-independent (real-time: not affected by pause or slow motion)?</param>
         public Timer(MonoBehaviour behaviour, float time, Action action, bool hasLoop = false, bool isUnscaled = false)
         {
-            _hasReference = true;
-            _behaviour    = behaviour;
-            _timerActions = new TimerActions(action);
-            _canLoop = hasLoop;
-            _useUnscaledTime = isUnscaled;
-            NewDuration(time);
-            _timers.Add((this, Actions.OnComplete));
+            // SetBehaviour(behaviour);
+            // _timerActions.Set(action);
+            // _timerActions = new TimerActions(action);
+            // Default(time, true, hasLoop, isUnscaled);
+            Set(behaviour, time, action, hasLoop, isUnscaled);
         }
         #endregion Constructors
 
@@ -232,46 +244,52 @@ namespace Ransom
         /// </summary>
         public static void OnUpdate()
         {
-            if (_timers.Count == 0) return;
+            if (Timers.Count == 0) return;
 
-            for (var i = 0; i < _timers.Count; i++)
+            for (var i = 0; i < Timers.Count; i++)
             {
-                var (Timer, OnComplete) = _timers[i];
-                if  (Timer.IsCancelled)
+                var timer = Timers[i];
+                if (timer.IsCancelled)
                 {
-                    Timer.Actions.OnCancelled?.Invoke();
-                    Timer = Remove(ref i);
+                    timer.Actions.OnCancelled?.Invoke();
+                    timer = Remove(ref i);
                     continue;
                 }
                 
-                if  (Timer.HasReference && Timer.IsDestroyed())
+                if (timer.HasReference && timer.IsDestroyed())
                 {
-                    Timer = Remove(ref i);
+                    timer = Remove(ref i);
                     continue;
                 }
 
-                if  ( Timer.IsSuspended) continue;
-                if  (!Timer.IsDone)
+                if ( timer.IsSuspended) continue;
+                if (!timer.IsDone)
                 {
-                    var timer = GetNextTimer(i);
-                    if (timer is null)
-                    {
-                        Timer.Actions.OnUpdated?.Invoke(Timer.PercentageDone);
-                        continue;
-                    }
-                    
-                    if (timer.IsDone && Mathf.Abs(timer.EndTime - Timer.EndTime) <= _threshold) Timer.ForceCompletion();
+                    var nextTimer = GetNextTimer(i);
+                    // if (nextTimer is null)
+                    // {
+                    //     timer.Actions.OnUpdated?.Invoke(timer.PercentageDone);
+                    //     continue;
+                    // }
+
+                    // if (nextTimer.IsDone && Mathf.Abs(nextTimer.EndTime - timer.EndTime) <= _threshold) timer.ForceCompletion();
+                    // else
+                    // {
+                    //     timer.Actions.OnUpdated?.Invoke(timer.PercentageDone);
+                    //     continue;
+                    // }
+
+                    if (!(nextTimer is null) && nextTimer.IsDone && Mathf.Abs(nextTimer.EndTime - timer.EndTime) <= _threshold) timer.ForceCompletion();
                     else
                     {
-                        Timer.Actions.OnUpdated?.Invoke(Timer.PercentageDone);
+                        timer.Actions.OnUpdated?.Invoke(timer.PercentageDone);
                         continue;
                     }
                 }
 
-                // OnComplete?.Invoke();
-                Timer.Actions.OnComplete?.Invoke();
-                if (!Timer.HasLoop) Timer = Remove(ref i);
-                else Timer.LoopDuration(Timer.Duration);
+                timer.Actions.OnComplete?.Invoke();
+                if (!timer.HasLoop) timer = Remove(ref i);
+                else timer.LoopDuration(timer.Duration);
             }
 
             // <summary>
@@ -281,7 +299,7 @@ namespace Ransom
             Timer GetNextTimer(int index)
             {
                 index++;
-                return (index < _timers.Count) ? _timers[index].Timer : null;
+                return (index < Timers.Count) ? Timers[index] : null;
             }
 
             // <summary>
@@ -290,7 +308,7 @@ namespace Ransom
             // <param name="index">The index of the timer.</param>
             Timer Remove(ref int index)
             {
-                var timer = _timers[index].Timer;
+                var timer = Timers[index];
                 _timers.RemoveAt(index--);
                 return timer = null;
             }
@@ -392,6 +410,25 @@ namespace Ransom
         }
 
         /// <summary>
+        /// Reload the timer to default.
+        /// </summary>
+        public void Reload()
+        {
+            _canLoop         = false;
+            _isCancelled     = false;
+            _isSuspended     = false;
+            _hasReference    = false;
+            _useUnscaledTime = false;
+            _endTime         = 0f;
+            _duration        = 0f;
+            _startTime       = 0f;
+            _suspendedTime   = 0f;
+            _isDirty         = false;
+            _behaviour       = default;
+            // if (hasActions) _timerActions.Set();
+        }
+
+        /// <summary>
         /// Reset the timer to default settings.
         /// </summary>
         public void Reset()
@@ -404,9 +441,9 @@ namespace Ransom
             _endTime         = 0f;
             _duration        = 0f;
             _startTime       = 0f;
-            _behaviour       = default;
             _suspendedTime   = 0f;
             _isDirty         = false;
+            _behaviour       = default;
             _timerActions    = new TimerActions();
         }
 
@@ -431,10 +468,69 @@ namespace Ransom
             Actions.OnSuspended?.Invoke();
         }
 
+        public void Set(float time, bool hasLoop = false, bool isUnscaled = false)
+        {
+            Reload();
+            Default(time, true, hasLoop, isUnscaled);
+        }
+
+        public void Set(float time, TimerActions timerActions, bool hasLoop = false, bool isUnscaled = false)
+        {
+            Reload();
+            _timerActions = timerActions;
+            Default(time, true, hasLoop, isUnscaled);
+        }
+
+        public void Set(float time, Action action, bool hasLoop = false, bool isUnscaled = false)
+        {
+            Reload();
+            _timerActions.Set(action);
+            Default(time, true, hasLoop, isUnscaled);
+        }
+
+        public void Set(MonoBehaviour behaviour, float time, bool hasLoop = false, bool isUnscaled = false)
+        {
+            Reload();
+            SetBehaviour(behaviour);
+            Default(time, true, hasLoop, isUnscaled);
+        }
+
+        public void Set(MonoBehaviour behaviour, float time, TimerActions timerActions, bool hasLoop = false, bool isUnscaled = false)
+        {
+            Reload();
+            SetBehaviour(behaviour);
+            _timerActions = timerActions;
+            Default(time, true, hasLoop, isUnscaled);
+        }
+
+        public void Set(MonoBehaviour behaviour, float time, Action action, bool hasLoop = false, bool isUnscaled = false)
+        {
+            Reload();
+            SetBehaviour(behaviour);
+            _timerActions.Set(action);
+            Default(time, true, hasLoop, isUnscaled);
+        }
+
+        private void AddTimer() => _timers.Add(this);
+
+        private void Default(float time, bool hasAction = false, bool hasLoop = false, bool isUnscaled = false)
+        {
+            _useUnscaledTime = isUnscaled;
+            _canLoop = hasLoop;
+            NewDuration(time);
+            if (hasAction) AddTimer();
+        }
+
         // <summary>
         // Is the attached object reference destroyed?
         // </summary>
         private bool IsDestroyed() => !ReferenceEquals(_behaviour, null) && _behaviour == null;
+
+        private void SetBehaviour(MonoBehaviour behaviour)
+        {
+            _hasReference = true;
+            _behaviour = behaviour;
+        }
         #endregion Methods    
     }
 }
