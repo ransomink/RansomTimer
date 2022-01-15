@@ -77,7 +77,7 @@ namespace Ransom
         #endregion Fields
         
         #region Properties
-        public static IReadOnlyList<Timer> Timers => _timers.AsReadOnly();
+        public static IReadOnlyList<Timer> Timers => _timers;
 
         /// <summary>
         /// A set of callbacks for the timer.
@@ -244,11 +244,12 @@ namespace Ransom
         /// </summary>
         public static void OnUpdate()
         {
-            if (Timers.Count == 0) return;
+            int count = _timers.Count;
+            if (count == 0) return;
 
-            for (var i = 0; i < Timers.Count; i++)
+            for (var i = 0; i < count; ++i)
             {
-                var timer = Timers[i];
+                var timer = _timers[i];
                 if (timer.IsCancelled)
                 {
                     timer.Actions.OnCancelled?.Invoke();
@@ -266,19 +267,6 @@ namespace Ransom
                 if (!timer.IsDone)
                 {
                     var nextTimer = GetNextTimer(i);
-                    // if (nextTimer is null)
-                    // {
-                    //     timer.Actions.OnUpdated?.Invoke(timer.PercentageDone);
-                    //     continue;
-                    // }
-
-                    // if (nextTimer.IsDone && Mathf.Abs(nextTimer.EndTime - timer.EndTime) <= _threshold) timer.ForceCompletion();
-                    // else
-                    // {
-                    //     timer.Actions.OnUpdated?.Invoke(timer.PercentageDone);
-                    //     continue;
-                    // }
-
                     if (!(nextTimer is null) && nextTimer.IsDone && Mathf.Abs(nextTimer.EndTime - timer.EndTime) <= _threshold) timer.ForceCompletion();
                     else
                     {
@@ -299,7 +287,7 @@ namespace Ransom
             Timer GetNextTimer(int index)
             {
                 index++;
-                return (index < Timers.Count) ? Timers[index] : null;
+                return (index < count) ? _timers[index] : null;
             }
 
             // <summary>
@@ -308,8 +296,9 @@ namespace Ransom
             // <param name="index">The index of the timer.</param>
             Timer Remove(ref int index)
             {
-                var timer = Timers[index];
+                var timer = _timers[index];
                 _timers.RemoveAt(index--);
+                count--;
                 return timer = null;
             }
         }
