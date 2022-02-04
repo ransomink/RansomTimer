@@ -2,13 +2,13 @@
 <br />
 <div align="center">
   <a href="https://github.com/ransomink/timer">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+<!--     <img src="https://i.imgur.com/8nYRixj.png" alt="Logo" width="80" height="80"> -->
   </a>
 
 <h3 align="center">Custom Unity Timer</h3>
 
   <p align="center">
-    Custom delay (timer) for actions and events.
+    A custom timer for invoking actions and events after a given delay.
     <br />
     <a href="https://github.com/ransomink/timer"><strong>Explore the docs »</strong></a>
     <br />
@@ -36,7 +36,7 @@
     <li>
       <a href="#getting-started">Getting Started</a>
       <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
+        <li><a href="#dependencies">Dependencies</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
@@ -58,7 +58,9 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+<p align="center"><img src="https://i.imgur.com/8nYRixj.png" alt="Package-CustomUnityTimer-Logo" title="Custom Unity Timer Logo"></p>
+
+At some point in time during your "game dev" adventure, you'll need to wait *X* amount of time to do *Y*. When I first explored this concept I was ushered towards [Coroutines](https://docs.unity3d.com/Manual/Coroutines.html): they work great, simple to execute, but caused an issue with memory (at the time); the ever popular tween engine: DOTween, LeanTween, etc.; or just using a variable to track the time in Update (albeit, with constant checks). Each had their own strengths and weakness, but I decided to expand on the latter as I could add any functionality needed without adhering to a concrete system. This evolved into a custom unity timer. It was made to simplify tracking time and adding to a project without injecting itself into its codebase.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -76,11 +78,11 @@
 <!-- GETTING STARTED -->
 ## Getting Started
 
-### Prerequisites
+### Dependencies
 
 * [Ransom Core Framework](https://github.com/ransomink/core-framework)
   ```sh
-  git clone https://github.com/ransomink/core-framework.git
+  https://github.com/ransomink/core-framework.git
   ```
 
 ### Installation
@@ -149,13 +151,32 @@ Action action = () => Debug.Log("I am ... was ... a timer.");
 new Timer(1f, action);
 ```
 
-This timer will invoke `action` after its completion. You can create or initialize a timer using its constructor, but there is also a convenience method:
+This timer will invoke `action` after its completion. You can create or initialize a timer using its constructor, but there is also a convenience method. It contains the same signature (and overloads) as the constructor.
 
 ```cs
 Timer.Record(1f, action);
 ```
 
-It contains the same signature (and overloads) as the constructor.
+A timer contains the [`TimerActions`](https://github.com/ransomink/timer/blob/a157aef365dc0acefd479096cf2746e999cabbe5/Scripts/Runtime/Timer.cs#L10) class field which consists of action delegates: `OnComplete`, `OnCancelled`, `OnSuspended`, `OnResumed`, and `OnUpdated`, each invoked when a change of state occurs. You can pass these actions as a parameter.
+
+```cs
+TimerActions actions = new TimerActions(
+  onComplete:  () => Debug.Log("Timer complete."),
+  onCancelled: () => Debug.Log("Timer cancelled."),
+  onSuspended: () => Debug.Log("Timer suspended."),
+  onResumed:   () => Debug.Log("Timer resumed."),
+  onUpdated:   () => Debug.Log("Timer updating...")
+);
+
+Timer.Record(1f, actions);
+```
+
+Lastly, you can bind a timer to a MonoBehaviour. This ensures the timer only runs if the MonoBehaviour is not destroyed. There is also a convenience method; it contains the same signature (and overloads) as the constructor.
+
+```cs
+new  Timer(this, 1f, actions);
+Timer.Bind(this, 1f, actions);
+```
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
@@ -213,6 +234,30 @@ How to extend a duration.
 private void Update() {
     if (Input.GetKeyDown(KeyCode.E)) timer.ExtendDuration(5f);
 }
+```
+
+How to set actions on an existing timer.
+```cs
+// Create a new TimerActions.
+TimerActions actions = new TimerActions(
+  onComplete:  () => Debug.Log("Timer complete."),
+  onCancelled: () => Debug.Log("Timer cancelled."),
+  onSuspended: () => Debug.Log("Timer suspended."),
+  onResumed:   () => Debug.Log("Timer resumed."),
+  onUpdated:   () => Debug.Log("Timer updating...")
+);
+
+// Assign actions to timer.
+timer.Actions = actions;
+
+// Overwrite actions on timer.
+timer.Actions.Set(
+  onComplete:  () => Debug.Log("Timer complete."),
+  onCancelled: () => Debug.Log("Timer cancelled.")
+);
+  
+// Edit action on timer.
+timer.Actions.OnUpdated = () => Debug.Log("Timer updating...");
 ```
 
 _For more examples, please refer to the [Documentation](https://example.com)_
