@@ -163,7 +163,7 @@ namespace Ransom.Tests
             var timer  = new Timer(dur);
             yield return new WaitForSeconds(dur / 2f);
 
-            Assert.AreEqual(0.5f, timer.PercentageDone, delta);
+            Assert.AreEqual(0.5f, timer.PercentageDone(), delta);
         }
         
         [UnityTest]

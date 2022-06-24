@@ -5,6 +5,9 @@
     "description": "Custom delay (timer) for actions and events.",
     "unity": "2020.3",
     "unityRelease": "0f1",
+    "dependencies": {
+        "com.ransomink.core": "1.0.0"
+    },
     "keywords": [
         "coroutine",
         "delay",
@@ -15,6 +18,6 @@
     ],
     "author": {
         "name": "Joshua Smith",
-        "url": "https://github.com/ransomink/timer "
+        "url": "https://github.com/ransomink/timer"
     }
 }

@@ -5,26 +5,26 @@ namespace Ransom
         #region Unity Callbacks
         private void OnEnable()
         {
-            UpdateManager.OnUpdate      += OnUpdate;
             UpdateManager.OnFixedUpdate += OnFixedUpdate;
+            UpdateManager.OnUpdate      += OnUpdate;
         }
         
         private void OnDisable()
         {
-            UpdateManager.OnUpdate      -= OnUpdate;
             UpdateManager.OnFixedUpdate -= OnFixedUpdate;
+            UpdateManager.OnUpdate      -= OnUpdate;
         }
         
         private void OnFixedUpdate()
         {
-            StaticTime.OnFixedUpdate();
             // Time.Instance.OnFixedUpdate();
+            StaticTime.OnFixedUpdate();
         }
     
         private void OnUpdate()
         {
-            StaticTime.OnUpdate();
             // Time.Instance.OnUpdate();
+            StaticTime.OnUpdate();
             Timer.OnUpdate();
         }
         #endregion Unity Callbacks
