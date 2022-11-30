@@ -147,7 +147,7 @@ new Timer(1f, isUnscaled: true)
 But the main use of a timer is to invoke a method after completion. We do so by passing in an action as a parameter.
 
 ```cs
-Action action = () => Debug.Log("I am ... was ... a timer.");
+Action action = () => Debug.Log("I am a timer.");
 new Timer(1f, action);
 ```
 
@@ -157,15 +157,15 @@ This timer will invoke `action` after its completion. You can create or initiali
 Timer.Record(1f, action);
 ```
 
-A timer contains the [`TimerActions`](https://github.com/ransomink/timer/blob/a157aef365dc0acefd479096cf2746e999cabbe5/Scripts/Runtime/Timer.cs#L10) class field which consists of action delegates: `OnComplete`, `OnCancelled`, `OnSuspended`, `OnResumed`, and `OnUpdated`, each invoked when a change of state occurs. You can pass these actions as a parameter.
+A timer contains the [`TimerActions`](https://github.com/ransomink/timer/blob/a157aef365dc0acefd479096cf2746e999cabbe5/Scripts/Runtime/Timer.cs#L10) class field which consists of action delegates: `OnCompleted`, `OnCancelled`, `OnSuspended`, `OnResumed`, and `OnUpdated`, each invoked when a change of state occurs. You can pass these actions as a parameter.
 
 ```cs
 TimerActions actions = new TimerActions(
-  onComplete:  () => Debug.Log("Timer complete."),
+  onCompleted: () => Debug.Log("Timer completed."),
   onCancelled: () => Debug.Log("Timer cancelled."),
   onSuspended: () => Debug.Log("Timer suspended."),
   onResumed:   () => Debug.Log("Timer resumed."),
-  onUpdated:   () => Debug.Log("Timer updating...")
+  onUpdated:   () => Debug.Log("Timer updated.")
 );
 
 Timer.Record(1f, actions);
@@ -190,10 +190,10 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 A timer is created to display a log to the Unity console.
 
 ```cs
-private Timer timer;
+private Timer timer = default;
 
 private void Start() {
-    timer = Timer.Record(5f, () => Debug.Log("I am ... was ... a timer."));
+    timer = Timer.Record(5f, () => Debug.Log("I am a timer."));
 }
 ```
 
@@ -204,7 +204,7 @@ The following methods show how to use/manipulate a timer.
 How to suspend a timer.
 ```cs
 private void Update() {
-    if (Input.GetKeyDown(KeyCode.S)) timer.Suspended();
+    if (Input.GetKeyDown(KeyCode.S)) timer.Suspend();
 }
 ```
 
@@ -218,7 +218,7 @@ private void Update() {
 How to cancel a timer.
 ```cs
 private void Update() {
-    if (Input.GetKeyDown(KeyCode.C)) timer.Cancelled();
+    if (Input.GetKeyDown(KeyCode.C)) timer.Cancel();
 }
 ```
 
@@ -240,24 +240,25 @@ How to set actions on an existing timer.
 ```cs
 // Create a new TimerActions.
 TimerActions actions = new TimerActions(
-  onComplete:  () => Debug.Log("Timer complete."),
+  onCompleted: () => Debug.Log("Timer completed."),
   onCancelled: () => Debug.Log("Timer cancelled."),
   onSuspended: () => Debug.Log("Timer suspended."),
   onResumed:   () => Debug.Log("Timer resumed."),
-  onUpdated:   () => Debug.Log("Timer updating...")
+  onUpdated:   () => Debug.Log("Timer updated.")
 );
 
-// Assign actions to timer.
+// Assign actions to the timer.
 timer.Actions = actions;
 
-// Overwrite actions on timer.
+// Overwrite actions on the timer. Any action not set will be assigned to default (null).
+// This is used to assign all timer actions. If you are not, use the next example instead.
 timer.Actions.Set(
-  onComplete:  () => Debug.Log("Timer complete."),
+  onCompleted: () => Debug.Log("Timer completed."),
   onCancelled: () => Debug.Log("Timer cancelled.")
 );
   
-// Edit action on timer.
-timer.Actions.OnUpdated = () => Debug.Log("Timer updating...");
+// Edit an action on the timer.
+timer.Actions.OnUpdated = () => Debug.Log("Timer updated.");
 ```
 
 _For more examples, please refer to the [Documentation](https://example.com)_
