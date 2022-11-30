@@ -5,14 +5,14 @@ namespace Ransom
         #region Unity Callbacks
         private void OnEnable()
         {
-            UpdateManager.OnFixedUpdate += OnFixedUpdate;
-            UpdateManager.OnUpdate      += OnUpdate;
+            UpdateDispatcher.OnFixedUpdate += OnFixedUpdate;
+            UpdateDispatcher.OnUpdate      += OnUpdate;
         }
         
         private void OnDisable()
         {
-            UpdateManager.OnFixedUpdate -= OnFixedUpdate;
-            UpdateManager.OnUpdate      -= OnUpdate;
+            UpdateDispatcher.OnFixedUpdate -= OnFixedUpdate;
+            UpdateDispatcher.OnUpdate      -= OnUpdate;
         }
         
         private void OnFixedUpdate()

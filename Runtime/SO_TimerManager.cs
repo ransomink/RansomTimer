@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Ransom
 {
     [CreateAssetMenu(
-        fileName = Folder.NAME_TIMER + Folder.NAME_MANAGER, 
-        menuName = Folder.SO + Folder.BASE_MANAGER + Folder.NAME_TIMER, 
+        fileName = Folder.Name_Timer + Folder.Name_Manager, 
+        menuName = Folder.SO + Folder.Base_Manager + Folder.Name_Timer, 
         order    = 0
     )]
     public class SO_TimerManager : Manager
@@ -28,56 +28,107 @@ namespace Ransom
             for (var i = 0; i < count; ++i)
             {
                 var timer = _timers[i];
-                if (timer.IsCancelled)
-                {
-                    timer.Actions.OnCancelled?.Invoke();
-                    timer = Remove(ref i);
-                    continue;
-                }
-                
-                if (timer.HasReference && timer.IsDestroyed())
-                {
-                    timer = Remove(ref i);
-                    continue;
-                }
+                if (TimerIsDestroyed(timer, ref i)) { continue; }
+                if (TimerIsCancelled(timer, ref i)) { continue; }
+                if (timer.IsSuspended) { continue; }
+                if (!TimerIsDone(timer, ref i)) { continue; }
 
-                if ( timer.IsSuspended) continue;
-                if (!timer.IsDone)
+                var p = timer.PercentageDone();
+                timer.Actions.OnUpdated?.Invoke(p);
+                timer.Actions.OnCompleted?.Invoke();
+                timer.SetState(TimerState.Completed);
+                
+                if (!TimerHasLoop(timer, ref i)) { return; }
+                
+                timer.LoopDuration(timer.Duration);
+            }
+
+            bool TimerHasLoop(Timer timer, ref int index)
+            {
+                if (timer.HasLoop) { return true; }
+                
+                timer = Remove(ref index);
+                return false;
+            }
+
+            bool TimerIsCancelled(Timer timer, ref int index)
+            {
+                if (!timer.IsCancelled) { return false; }
+                
+                timer.Actions.OnCancelled?.Invoke();
+                timer = Remove(ref index);
+                return true;
+            }
+
+            bool TimerIsDestroyed(Timer timer, ref int index)
+            {
+                if (timer is object && (!timer.HasReference || !timer.IsDestroyed)) { return false; }
+                
+                timer = Remove(ref index);
+                return true;
+            }
+
+            bool TimerIsDone(Timer timer, ref int index)
+            {
+                if (timer.IsDone) { return true; }
+
+                if (TryGetNextTimer(out Timer nextTimer, index))
                 {
-                    var nextTimer = GetNextTimer(i);
-                    if (!(nextTimer is null) && nextTimer.IsDone && Mathf.Abs(nextTimer.EndTime - timer.EndTime) <= Threshold) timer.ForceCompletion();
-                    else
+                    var nextTimerIsActive = nextTimer.State == TimerState.Active;
+                    var nextTimerAsyncEndTime = Mathf.Abs(nextTimer.EndTime - timer.EndTime);
+                    if (nextTimerIsActive && nextTimer.IsDone && nextTimerAsyncEndTime <= Threshold)
                     {
-                        timer.Actions.OnUpdated?.Invoke(timer.PercentageDone());
-                        continue;
+                        timer.ForceCompletion();
+                        return true;
                     }
                 }
 
-                timer.Actions.OnCompleted?.Invoke();
-                if (!timer.HasLoop) timer = Remove(ref i);
-                else timer.LoopDuration(timer.Duration);
+                var p = timer.PercentageDone();
+                timer.Actions.OnUpdated?.Invoke(p);
+                return false;
             }
 
-            // <summary>
-            // Returns the next timer, if one is found.
-            // </summary>
-            // <param name="index">The index of the current (active) timer.</param>
+            /// <summary>
+            /// Returns the next Timer if one is found.
+            /// </summary>
+            /// <param name="index">The index of the current (active) timer.</param>
+            /// <returns>The next Timer, otherwise null.</returns>
             Timer GetNextTimer(int index)
             {
-                index++;
-                return (index < count) ? _timers[index] : null;
+                // return (++index < count) ? _timers[index] : null;
+                if (++index < count) { return _timers[index]; }
+                return null;
             }
 
-            // <summary>
-            // Remove a timer at the specified index.
-            // </summary>
-            // <param name="index">The index of the timer.</param>
+            /// <summary>
+            /// Remove the Timer at the specified index of the List<T>.
+            /// </summary>
+            /// <param name="index">The zero-based index of the Timer to remove.</param>
             Timer Remove(ref int index)
             {
                 var timer = _timers[index];
                 _timers.RemoveAt(index--);
                 count--;
-                return timer = null;
+                return timer;
+            }
+
+            /// <summary>
+            /// Gets the Timer, if it exists. 
+            /// </summary>
+            /// <param name="nextTimer">The output argument that will contain the Timer or null.</param>
+            /// <param name="index">The index of the current (active) timer.</param>
+            /// <returns>Returns true if the Timer is found, false otherwise.</returns>
+            bool TryGetNextTimer(out Timer nextTimer, int index)
+            {
+                // return (++index < count) ? _timers[index] : null;
+                if (++index < count)
+                {
+                    nextTimer = _timers[index];
+                    return true;
+                }
+
+                nextTimer = null;
+                return false;
             }
         }
         #endregion Unity Callbacks
