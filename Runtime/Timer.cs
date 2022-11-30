@@ -331,7 +331,7 @@ namespace Ransom
 
             bool TimerIsDestroyed(Timer timer, ref int index)
             {
-                if (!timer.HasReference || !timer.IsDestroyed) { return false; }
+                if (timer is object && (!timer.HasReference || !timer.IsDestroyed)) { return false; }
                 
                 timer = Remove(ref index);
                 return true;
@@ -339,7 +339,7 @@ namespace Ransom
 
             bool TimerIsDone(Timer timer, ref int index)
             {
-                if (timer.IsDone) return true;
+                if (timer.IsDone) { return true; }
 
                 if (TryGetNextTimer(out Timer nextTimer, index))
                 {
