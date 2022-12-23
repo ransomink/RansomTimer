@@ -1,7 +1,13 @@
+using UnityEngine;
+
 namespace Ransom
 {
-    public class TimeManager : Singleton<TimeManager>
+    public sealed class TimeManager : Singleton<TimeManager>
     {
+        #region Properties
+        [SerializeField] private SO_TimerManager TimerManager = default;
+        #endregion Properties
+
         #region Unity Callbacks
         private void OnEnable()
         {
@@ -25,7 +31,7 @@ namespace Ransom
         {
             // Time.Instance.OnUpdate();
             StaticTime.OnUpdate();
-            Timer.OnUpdate();
+            TimerManager.OnUpdate();
         }
         #endregion Unity Callbacks
     }

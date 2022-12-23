@@ -43,10 +43,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f7d0f3c98dd655546bd677c39f0179f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _start: []
+  _fixedUpdate:
+  - {fileID: 11400000, guid: 848c4c29f220e4a4a88146391d224d03, type: 2}
   _baseUpdate:
   - {fileID: 11400000, guid: 848c4c29f220e4a4a88146391d224d03, type: 2}
   - {fileID: 11400000, guid: 3e0d67f1b05f64b43a7d7a8b97a8a656, type: 2}
   _lateUpdate: []
-  _fixedUpdate:
+  _destroy:
   - {fileID: 11400000, guid: 848c4c29f220e4a4a88146391d224d03, type: 2}
-  - {fileID: 11400000, guid: 3e0d67f1b05f64b43a7d7a8b97a8a656, type: 2}

@@ -8,7 +8,7 @@ namespace Ransom
         menuName = Folder.SO + Folder.Base_Manager + Folder.Name_Timer, 
         order    = 0
     )]
-    public class SO_TimerManager : Manager
+    public sealed class SO_TimerManager : SO_Manager
     {
         #region Fields
         private static List<Timer> _timers = new List<Timer>(32);
@@ -93,12 +93,12 @@ namespace Ransom
             /// </summary>
             /// <param name="index">The index of the current (active) timer.</param>
             /// <returns>The next Timer, otherwise null.</returns>
-            Timer GetNextTimer(int index)
-            {
-                // return (++index < count) ? _timers[index] : null;
-                if (++index < count) { return _timers[index]; }
-                return null;
-            }
+            // Timer GetNextTimer(int index)
+            // {
+            //     // return (++index < count) ? _timers[index] : null;
+            //     if (++index < count) { return _timers[index]; }
+            //     return null;
+            // }
 
             /// <summary>
             /// Remove the Timer at the specified index of the List<T>.

@@ -362,12 +362,12 @@ namespace Ransom
             /// </summary>
             /// <param name="index">The index of the current (active) timer.</param>
             /// <returns>The next Timer, otherwise null.</returns>
-            Timer GetNextTimer(int index)
-            {
-                // return (++index < count) ? _timers[index] : null;
-                if (++index < count) { return _timers[index]; }
-                return null;
-            }
+            // Timer GetNextTimer(int index)
+            // {
+            //     // return (++index < count) ? _timers[index] : null;
+            //     if (++index < count) { return _timers[index]; }
+            //     return null;
+            // }
 
             /// <summary>
             /// Remove the Timer at the specified index of the List<T>.
