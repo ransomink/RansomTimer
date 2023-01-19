@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace Ransom
 {
-    public sealed class TimeManager : Singleton<TimeManager>
+    public class TimerExecutionOrder : Singleton<TimerExecutionOrder>
     {
         #region Properties
         [SerializeField] private SO_TimerManager TimerManager = default;

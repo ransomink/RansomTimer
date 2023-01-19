@@ -12,7 +12,6 @@ namespace Ransom
     {
         #region Fields
         private static List<Timer> _timers = new List<Timer>(32);
-        private const float Threshold = .01f;
         #endregion Fields
         
         #region Properties
@@ -22,119 +21,95 @@ namespace Ransom
         #region Unity Callbacks
         public override void OnUpdate()
         {
-            int count = _timers.Count;
-            if (count == 0) return;
+            _timers.Sort();
 
-            for (var i = 0; i < count; ++i)
+            var index = 0;
+            var count = _timers.Count;
+            var timer = (Timer)default;
+
+            if (count == 0) { return; }
+
+            for (index = 0; index < count; ++index)
             {
-                var timer = _timers[i];
-                if (TimerIsDestroyed(timer, ref i)) { continue; }
-                if (TimerIsCancelled(timer, ref i)) { continue; }
-                if (timer.IsSuspended) { continue; }
-                if (!TimerIsDone(timer, ref i)) { continue; }
+                timer = _timers[index];
+                if (TimerIsDestroyed()) { continue; }
+                if (TimerIsCancelled()) { continue; }
+                if (TimerIsSuspended()) { continue; }
+
+                if (timer.HasReference && !timer.Behaviour.enabled)
+                {
+                    timer.Suspend(false);
+                    continue;
+                }
+
+                if (!timer.IsDone) { continue; }
 
                 var p = timer.PercentageDone();
+                timer.SetState(TimerState.Completed);
                 timer.Actions.OnUpdated?.Invoke(p);
                 timer.Actions.OnCompleted?.Invoke();
-                timer.SetState(TimerState.Completed);
                 
-                if (!TimerHasLoop(timer, ref i)) { return; }
+                if (!TimerHasLoop()) { return; }
                 
-                timer.LoopDuration(timer.Duration);
+                timer.LoopDuration();
             }
 
-            bool TimerHasLoop(Timer timer, ref int index)
+            bool TimerHasLoop()
             {
                 if (timer.HasLoop) { return true; }
                 
-                timer = Remove(ref index);
+                timer = RemoveTimer();
                 return false;
             }
 
-            bool TimerIsCancelled(Timer timer, ref int index)
+            bool TimerIsCancelled()
             {
                 if (!timer.IsCancelled) { return false; }
                 
                 timer.Actions.OnCancelled?.Invoke();
-                timer = Remove(ref index);
+                timer = RemoveTimer();
                 return true;
             }
 
-            bool TimerIsDestroyed(Timer timer, ref int index)
+            bool TimerIsDestroyed()
             {
                 if (timer is object && (!timer.HasReference || !timer.IsDestroyed)) { return false; }
                 
-                timer = Remove(ref index);
+                timer = RemoveTimer();
                 return true;
             }
 
-            bool TimerIsDone(Timer timer, ref int index)
+            bool TimerIsSuspended()
             {
-                if (timer.IsDone) { return true; }
+                if (!timer.IsSuspended) { return false; }
 
-                if (TryGetNextTimer(out Timer nextTimer, index))
-                {
-                    var nextTimerIsActive = nextTimer.State == TimerState.Active;
-                    var nextTimerAsyncEndTime = Mathf.Abs(nextTimer.EndTime - timer.EndTime);
-                    if (nextTimerIsActive && nextTimer.IsDone && nextTimerAsyncEndTime <= Threshold)
-                    {
-                        timer.ForceCompletion();
-                        return true;
-                    }
-                }
+                // TODO: Suspend timer when its host MonoBehaviour is disabled.
+                if (timer.IsSuspendedManually) { return true; }
 
-                var p = timer.PercentageDone();
-                timer.Actions.OnUpdated?.Invoke(p);
-                return false;
+                // TODO: Resume Timer when its host MonoBehaviour is enabled.
+                if (timer.HasReference && timer.Behaviour.enabled) { timer.Resume(); }
+
+                return true;
             }
-
-            /// <summary>
-            /// Returns the next Timer if one is found.
-            /// </summary>
-            /// <param name="index">The index of the current (active) timer.</param>
-            /// <returns>The next Timer, otherwise null.</returns>
-            // Timer GetNextTimer(int index)
-            // {
-            //     // return (++index < count) ? _timers[index] : null;
-            //     if (++index < count) { return _timers[index]; }
-            //     return null;
-            // }
 
             /// <summary>
             /// Remove the Timer at the specified index of the List<T>.
             /// </summary>
             /// <param name="index">The zero-based index of the Timer to remove.</param>
-            Timer Remove(ref int index)
+            Timer RemoveTimer()
             {
-                var timer = _timers[index];
-                _timers.RemoveAt(index--);
+                _timers.RemoveAt(index);
+                index--;
                 count--;
-                return timer;
-            }
-
-            /// <summary>
-            /// Gets the Timer, if it exists. 
-            /// </summary>
-            /// <param name="nextTimer">The output argument that will contain the Timer or null.</param>
-            /// <param name="index">The index of the current (active) timer.</param>
-            /// <returns>Returns true if the Timer is found, false otherwise.</returns>
-            bool TryGetNextTimer(out Timer nextTimer, int index)
-            {
-                // return (++index < count) ? _timers[index] : null;
-                if (++index < count)
-                {
-                    nextTimer = _timers[index];
-                    return true;
-                }
-
-                nextTimer = null;
-                return false;
+                return null;
             }
         }
         #endregion Unity Callbacks
 
         #region Methods
-        public static void Add(Timer timer) => _timers.Add(timer);
+        public static void AddTimer(Timer timer) => _timers.Add(timer);
+
+        public static bool Contains(Timer timer) => _timers.Contains(timer);
         #endregion Methods
     }
 }

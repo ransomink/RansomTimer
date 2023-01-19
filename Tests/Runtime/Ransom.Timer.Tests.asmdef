@@ -4,7 +4,8 @@
     "references": [
         "Ransom.Timer",
         "UnityEditor.TestRunner",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "Ransom.ScriptableObjects"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

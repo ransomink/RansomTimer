@@ -9,9 +9,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9019500331597716060}
-  - component: {fileID: -2187246695007496581}
+  - component: {fileID: 9019500331597716063}
   m_Layer: 0
-  m_Name: SO_TimeManager
+  m_Name: S_TimerExecutionOrder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -31,7 +31,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &-2187246695007496581
+--- !u!114 &9019500331597716063
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -40,15 +40,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 9019500331597716062}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f7d0f3c98dd655546bd677c39f0179f0, type: 3}
+  m_Script: {fileID: 11500000, guid: 8a405609506ed844eb279c650c7ae479, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _start: []
-  _fixedUpdate:
-  - {fileID: 11400000, guid: 848c4c29f220e4a4a88146391d224d03, type: 2}
-  _baseUpdate:
-  - {fileID: 11400000, guid: 848c4c29f220e4a4a88146391d224d03, type: 2}
-  - {fileID: 11400000, guid: 3e0d67f1b05f64b43a7d7a8b97a8a656, type: 2}
-  _lateUpdate: []
-  _destroy:
-  - {fileID: 11400000, guid: 848c4c29f220e4a4a88146391d224d03, type: 2}
+  TimerManager: {fileID: 11400000, guid: 3e0d67f1b05f64b43a7d7a8b97a8a656, type: 2}
