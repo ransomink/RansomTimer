@@ -339,7 +339,7 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 - [ ] Switch to FSM (to check timer state)
 - [x] Add OnRestarted event to `TimerActions` for repeating (looping) Timers
 - [x] Suspend and Resume a Timer when its host MonoBehaviour is disabled and enabled
-- [ ] Change internal collection from `List` to `SortedSet` to compare and sort them by `EndTime`~~
+- [ ] ~~Change internal collection from `List` to `SortedSet` to compare and sort them by `EndTime`~~
 - [x] ~~Use `OrderBy` to sort the internal collection.~~ Switch to `List.Sort` with `IComparable` instead
 
 See the [open issues](https://github.com/ransomink/timer/issues) for a full list of proposed features (and known issues).
